@@ -6,3 +6,6 @@ dist
 .idea
 mark
 data
+
+# 个人 fork 的部署配置（镜像指向自己的仓库，不提交以免污染上游）
+docker-compose.xinming.yml
