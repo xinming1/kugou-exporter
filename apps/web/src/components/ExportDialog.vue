@@ -96,6 +96,12 @@
 
     <!-- Step: result -->
     <div v-if="exportResult" class="export-result">
+      <div v-if="exportUrl" class="result-link">
+        <el-input v-model="exportUrl" readonly class="link-input" />
+        <el-button type="primary" :icon="Link" @click="copyUrl">
+          复制链接
+        </el-button>
+      </div>
       <el-input v-model="exportResult" type="textarea" :rows="14" readonly class="result-area" />
       <div class="result-actions">
         <el-button type="primary" :icon="CopyDocument" @click="copyResult">
@@ -206,7 +212,7 @@
 
 <script setup lang="ts">
 import type { ExportHistoryItem } from '@/api';
-import { Clock, CopyDocument, Download } from '@element-plus/icons-vue';
+import { Clock, CopyDocument, Download, Link } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import useClipboard from 'vue-clipboard3';
@@ -227,6 +233,7 @@ const form = ref({ serverUrl: '', quality: 'high' });
 const vipInfo = ref<{ nickname: string; vip_type: number } | null>(null);
 const exporting = ref(false);
 const exportResult = ref('');
+const exportUrl = ref('');
 const currentExportType = ref<'xiaomusic' | 'json' | 'csv'>('xiaomusic');
 const history = ref<ExportHistoryItem[]>([]);
 
@@ -345,6 +352,7 @@ async function handleExport(type: 'xiaomusic' | 'json' | 'csv') {
   currentExportType.value = type;
   exporting.value = true;
   exportResult.value = '';
+  exportUrl.value = '';
   try {
     // 后端拉取歌单、生成内容并记录历史（导出与历史均以服务端为准）
     const res = await exportApi.run({
@@ -364,6 +372,7 @@ async function handleExport(type: 'xiaomusic' | 'json' | 'csv') {
     }
 
     exportResult.value = res.content;
+    exportUrl.value = res.url || '';
     exporting.value = false;
     ElMessage.success(`导出成功！共 ${res.count} 首`);
   } catch (e: any) {
@@ -383,6 +392,15 @@ async function copyResult() {
   }
 }
 
+async function copyUrl() {
+  try {
+    await toClipboard(exportUrl.value);
+    ElMessage.success('链接已复制');
+  } catch {
+    ElMessage.error('复制失败，请手动复制');
+  }
+}
+
 function downloadResult() {
   const filename
     = currentExportType.value === 'csv'
@@ -394,11 +412,13 @@ function downloadResult() {
 
 function resetExport() {
   exportResult.value = '';
+  exportUrl.value = '';
 }
 
 function handleClose() {
   if (!exporting.value) {
     exportResult.value = '';
+    exportUrl.value = '';
     visible.value = false;
   }
 }
@@ -408,6 +428,7 @@ async function open(listid: number, name: string) {
   playlistId.value = listid;
   playlistName.value = name;
   exportResult.value = '';
+  exportUrl.value = '';
   await loadConfig();
 }
 
@@ -511,6 +532,20 @@ defineExpose({ open });
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.result-link {
+  display: flex;
+  gap: 8px;
+}
+
+.result-link .link-input {
+  flex: 1;
+}
+
+.result-link :deep(.el-input__inner) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
 }
 
 .result-area :deep(textarea) {

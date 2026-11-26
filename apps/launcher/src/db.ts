@@ -61,6 +61,7 @@ db.exec(`
     format TEXT NOT NULL,
     count INTEGER NOT NULL DEFAULT 0,
     content TEXT NOT NULL,
+    token TEXT DEFAULT '',
     created_at INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (kugou_account_id) REFERENCES kugou_accounts(id) ON DELETE CASCADE
@@ -86,6 +87,7 @@ if (tables.some((t) => t.name === 'settings')) {
 if (tables.some((t) => t.name === 'export_history')) {
   ensureColumn('export_history', 'playlist_name', 'TEXT DEFAULT \'\'');
   ensureColumn('export_history', 'quality', 'TEXT DEFAULT \'\'');
+  ensureColumn('export_history', 'token', 'TEXT DEFAULT \'\'');
 }
 
 export function hasUsers(): boolean {

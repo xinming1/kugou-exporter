@@ -7,6 +7,7 @@ import pkg from '../../../package.json';
 import { attachAuthRoutes } from './routes/auth';
 import { attachConfigRoutes } from './routes/config';
 import { attachExportRoutes } from './routes/export';
+import { attachExportFileRoutes } from './routes/export-file';
 import { attachHistoryRoutes } from './routes/history';
 import { attachKugouRoutes } from './routes/kugou';
 import { attachProxyRoutes } from './routes/proxy';
@@ -44,6 +45,7 @@ async function start(): Promise<void> {
     attachProxyRoutes(app);
     attachHistoryRoutes(app);
     attachExportRoutes(app);
+    attachExportFileRoutes(app);
 
     // 生产环境下挂载前端静态资源（若已构建）
     const webDist = path.join(__dirname, '../../web/dist');

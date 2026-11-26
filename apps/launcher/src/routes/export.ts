@@ -3,6 +3,7 @@ import type { ExportFormat, Song } from '../lib/export-content';
 import kugoumusicapi from 'kugoumusicapi';
 import { buildCsvContent, buildProxyUrl, pickList } from '../lib/export-content';
 import { requireAuth } from '../middleware/session';
+import { saveExportFile } from '../store/export-file';
 import { addHistory } from '../store/history';
 import { getActiveKugouAccount, getActiveKugouCookies } from '../store/kugou';
 import { getSettings } from '../store/settings';
@@ -79,8 +80,19 @@ export function attachExportRoutes(app: Express): void {
         content = JSON.stringify(songs, null, 2);
       }
 
-      addHistory(userId, acct.id, playlistName, format, songs.length, content, quality);
-      res.json({ success: true, content, count: songs.length, playlistName, format });
+      // JSON 类导出（xiaomusic / json）落盘为可公开访问的文件，返回直链，免去复制原文。
+      // token 存入历史记录，删除历史时同步清理文件，防止堆积。
+      // CSV 走前端直接下载，不生成链接（token 留空、不落盘）。
+      let token = '';
+      let url = '';
+      if (format !== 'csv') {
+        token = saveExportFile(content);
+        const base = serverUrl ? serverUrl.replace(/\/+$/, '') : 'http://127.0.0.1:3000';
+        url = `${base}/exports/${token}`;
+      }
+
+      addHistory(userId, acct.id, playlistName, format, songs.length, content, quality, token);
+      res.json({ success: true, content, count: songs.length, playlistName, format, url, token });
     } catch (e: any) {
       console.error('[export] error', e?.message || e);
       res.status(502).json({ success: false, error: '导出失败' });

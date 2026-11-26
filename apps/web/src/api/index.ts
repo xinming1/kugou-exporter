@@ -66,9 +66,14 @@ export const configApi = {
 };
 
 export const exportApi = {
-  /** 后端导出：拉取歌单 → 生成内容 → 自动写入导出历史 */
+  /** 后端导出：拉取歌单 → 生成内容 → 落盘返回直链 → 自动写入导出历史 */
   run: (payload: { listid: number; format: 'xiaomusic' | 'json' | 'csv'; quality?: string; serverUrl?: string }) =>
-    request.post<{ success: boolean; content: string; count: number; playlistName: string }>('/export', payload).then((r) => r.data),
+    request
+      .post<{ success: boolean; content: string; count: number; playlistName: string; url?: string; token?: string }>(
+        '/export',
+        payload
+      )
+      .then((r) => r.data),
 };
 
 export const historyApi = {
